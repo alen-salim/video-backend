@@ -4,10 +4,11 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "./../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 const generateAccessTokenAndRefreshToken = async (userId) => {
   try {
-    const user = await User.findOne(userId);
+    const user = await User.findById(userId);
 
     const accessToken = await user.generateAccessToken();
     const refreshToken = await user.generateRefreshToken();
@@ -17,7 +18,7 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
 
     return { accessToken, refreshToken };
   } catch (error) {
-    throw new ApiError(500, "Something went wrong while genrating the tokens");
+    throw new ApiError(500, "Something went wrong while generating the tokens");
   }
 };
 
@@ -151,7 +152,9 @@ const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
     {
-      $set: { refreshToken: undefined },
+      $unset: {
+        refreshToken: 1,
+      },
     },
     {
       new: true,
@@ -195,7 +198,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     }
 
     const { accessToken, newRefreshToken } =
-      await generateAccessTokenAndRefreshToken(decodedToken._id);
+      await generateAccessTokenAndRefreshToken(decodedToken?._id);
 
     const options = {
       httpOnly: true,
@@ -238,7 +241,9 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-  return res.status(200).json(200, req.user, "Current user fetched");
+  return res
+    .status(200)
+    .json(new ApiResponse(200, req.user, "Current user fetched"));
 });
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
@@ -386,7 +391,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     },
   ]);
 
-  if (!channel.length()) {
+  if (!channel.length) {
     throw new ApiError(400, "Channel does not exist");
   }
 
