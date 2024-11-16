@@ -55,7 +55,7 @@ const addComment = asyncHandler(async (req, res) => {
   // TODO: add a comment to a video
   const { videoId } = req.params;
   const { content } = req.body;
-  const { userId: _id } = req.user;
+  const { userId = _id } = req.user;
 
   if (!(videoId || content || userId)) {
     throw new ApiError(400, "Invalid data");
