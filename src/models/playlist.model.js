@@ -5,6 +5,7 @@ const playlistSchema = new Schema(
     name: {
       type: String,
       required: true,
+      unique: true,
     },
     description: {
       type: String,
@@ -21,7 +22,7 @@ const playlistSchema = new Schema(
       ref: "User",
     },
   },
-  { timestamps }
+  { timestamps: true }
 );
 
 export const Playlist = mongoose.model("Playlist", playlistSchema);
